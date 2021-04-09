@@ -8,7 +8,7 @@ def send(message):
     print(ser.readline())
 
 
-ser = serial.Serial('/dev/ttyAMC0', 115200)  # Establish the connection on a specific port
+ser = serial.Serial('/dev/ttyUSB0', 115200)  # Establish the connection on a specific port
 sleep(3)  # Wait for arduino to boot
 print('Start')
 send('G')
