@@ -39,7 +39,7 @@ def train(hyp, opt, device, tb_writer=None):
     wdir = log_dir / 'weights'  # weights directory
     os.makedirs(wdir, exist_ok=True)
     last = wdir / 'last.pt'
-    best = wdir / 'best.pt'
+    best = wdir / 'v1.pt'
     results_file = str(log_dir / 'results.txt')
     epochs, batch_size, total_batch_size, weights, rank = \
         opt.epochs, opt.batch_size, opt.total_batch_size, opt.weights, opt.global_rank
@@ -361,7 +361,7 @@ def train(hyp, opt, device, tb_writer=None):
         # Strip optimizers
         n = opt.name if opt.name.isnumeric() else ''
         fresults, flast, fbest = log_dir / f'results{n}.txt', wdir / f'last{n}.pt', wdir / f'best{n}.pt'
-        for f1, f2 in zip([wdir / 'last.pt', wdir / 'best.pt', results_file], [flast, fbest, fresults]):
+        for f1, f2 in zip([wdir / 'last.pt', wdir / 'v1.pt', results_file], [flast, fbest, fresults]):
             if os.path.exists(f1):
                 os.rename(f1, f2)  # rename
                 if str(f2).endswith('.pt'):  # is *.pt

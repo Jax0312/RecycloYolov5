@@ -8,6 +8,8 @@ import cv2
 import torch
 import torch.backends.cudnn as cudnn
 from numpy import random
+import datetime
+import serial
 
 from models.experimental import attempt_load
 from utils.datasets import LoadStreams, LoadImages
@@ -18,6 +20,19 @@ from utils.torch_utils import select_device, load_classifier, time_synchronized
 
 
 def detect(save_img=False):
+
+    PLASTIC = []
+    PAPER = ['cell phone']
+    ALUMINIUM = []
+
+    plasticXRange = range(430, 600)
+    aluminiumXRange = range(200, 320)
+    paperXRange = range(0, 130)
+
+    PlasticLastCall = datetime.datetime.now().time().second
+    AluminiumLastCall = datetime.datetime.now().time().second
+    PaperLastCall = datetime.datetime.now().time().second
+
     out, source, weights, view_img, save_txt, imgsz = \
         opt.save_dir, opt.source, opt.weights, opt.view_img, opt.save_txt, opt.img_size
     webcam = source.isnumeric() or source.startswith(('rtsp://', 'rtmp://', 'http://')) or source.endswith('.txt')
@@ -110,11 +125,46 @@ def detect(save_img=False):
 
                     if save_img or view_img:  # Add bbox to image
                         label = '%s %.2f' % (names[int(cls)], conf)
+                        clsName = names[int(cls)]
                         # My code
-
                         midX = int((xyxy[0] + xyxy[2]) / 2)
                         midY = int((xyxy[1] + xyxy[3]) / 2)
-                        plot_one_box(xyxy, im0, (midX, midY), label=label, color=colors[int(cls)], line_thickness=3)
+
+                        # Classify recyclable
+                        if clsName in PLASTIC:
+                            # 0 = plastic
+                            wasteType = 0
+                        elif clsName in ALUMINIUM:
+                            # 1 = aluminium
+                            wasteType = 1
+                        elif clsName in PAPER:
+                            # 2 = paper
+                            wasteType = 2
+                        else:
+                            # General Waste
+                            wasteType = 3
+
+                        if wasteType == 0:
+                            if midX in plasticXRange:
+                                if abs(datetime.datetime.now().time().second - PlasticLastCall) > 3:
+                                    PlasticLastCall = datetime.datetime.now().time().second
+                                    send('P')
+                                    print("Plastic piston Fired")
+                        elif wasteType == 1:
+                            if midX in aluminiumXRange:
+                                if abs(datetime.datetime.now().time().second - AluminiumLastCall) > 3:
+                                    AluminiumLastCall = datetime.datetime.now().time().second
+                                    send('A')
+                                    print("Aluminium piston Fired")
+                        elif wasteType == 2:
+                            if midX in paperXRange:
+                                if abs(datetime.datetime.now().time().second - PaperLastCall) > 3:
+                                    PaperLastCall = datetime.datetime.now().time().second
+                                    # send('G')
+                                    print("Paper piston Fired")
+
+                        # Plot a box with midpoint
+                        plot_one_box(xyxy, im0, (midX, midY), label=str(wasteType), color=colors[int(cls)], line_thickness=3)
                         print(label, midX, midY)
 
             # This part prints to terminal
@@ -152,7 +202,14 @@ def detect(save_img=False):
     print('Done. (%.3fs)' % (time.time() - t0))
 
 
+def send(message):
+    pass
+    # ser.write(bytes(message, 'utf-8'))
+    # sleep(0.1)
+
+
 if __name__ == '__main__':
+    # ser = serial.Serial('COM3', 9600)
     parser = argparse.ArgumentParser()
     parser.add_argument('--weights', nargs='+', type=str, default='yolov5s.pt', help='model.pt path(s)')
     parser.add_argument('--source', type=str, default='inference/images', help='source')  # file/folder, 0 for webcam
