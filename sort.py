@@ -209,7 +209,7 @@ def send(message):
 
 
 if __name__ == '__main__':
-    ser = serial.Serial('COM6', 9600)
+    ser = serial.Serial('/dev/ttyUSB0', 9600)
     parser = argparse.ArgumentParser()
     parser.add_argument('--weights', nargs='+', type=str, default='yolov5s.pt', help='model.pt path(s)')
     parser.add_argument('--source', type=str, default='inference/images', help='source')  # file/folder, 0 for webcam
