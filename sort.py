@@ -27,7 +27,7 @@ def detect(save_img=False):
 
     plasticXRange = range(460, 590)
     aluminiumXRange = range(250, 370)
-    paperXRange = range(0, 110)
+    paperXRange = range(50, 110)
 
     PlasticLastCall = datetime.datetime.now().time().second
     AluminiumLastCall = datetime.datetime.now().time().second
